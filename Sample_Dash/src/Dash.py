@@ -3,14 +3,15 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 from dash import dcc , html , Input , Output ,Dash,callback
 import dash_bootstrap_components as dbc
-import dash_auth
 import datetime
 
-
+# loading the dataset
 df = pd.read_csv("train.csv" , encoding="iso-8859-1" )
 df["Order Date"] = pd.to_datetime(df["Order Date"] ,dayfirst=True)
 # df["month"] = datetime.date(df["Order Date"]).month()
 # df["year"] = datetime.date(df["Order Date"]).year()
+
+# sitting graph config
 graph_config={
         "staticPlot":False,
         "scrollZoom":True,
@@ -20,9 +21,11 @@ graph_config={
         "watermark":True
                   }
 
+
 app = Dash(__name__ , external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
-auth = dash_auth.BasicAuth(app,{"ahmed":"12345"})
+
+# sitting app layout
 
 app.layout=(dbc.Container([
     dbc.Row(dbc.Col("Sales Analysis Dashboard",width=12,
@@ -36,23 +39,25 @@ app.layout=(dbc.Container([
 
 ]))
 
+# callback for line chart
 @app.callback(
     Output("line","figure"),
     Input("drop1","value")
 )
-
+# func for updating line chart
 def upadate_graph(cate):
     dff = df[df["Category"].isin(cate)].set_index("Order Date")
     dff_line = dff.groupby(["Order Date","Category"])["Sales"].sum().reset_index()
     line = px.line(dff_line,x="Order Date" , y="Sales" ,color="Category" ,custom_data=["Category"])
     return line
 
+# callback for line chart
 @app.callback(
     Output("pie" ,"figure"),
     Input("line","hoverData"),
     Input("drop1","value")
 )
-
+# func for updating line chart
 def update_pie(hover,cate):
     if hover is None :
         dff_pie = df[df["Category"].isin(cate)]
@@ -68,5 +73,6 @@ def update_pie(hover,cate):
         
         return pie
 
+# runnig the app
 if __name__ == "__main__":
     app.run_server(debug = True)
